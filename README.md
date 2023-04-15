@@ -75,32 +75,40 @@ batchSize=200<br/>
 </code>
 
 To deploy the MSK Connector Code create the MSK connect Custom plugin that points to the MSK connect jar uploaded to the s3 bucket. Set up MSK connect from the custom plugin. 
+![plot](./customplugin.png)
+
+follow this for setting up the correct IAM Role for MSK Connector
+https://aws.amazon.com/premiumsupport/knowledge-center/kinesis-kafka-connector-msk/
+
 
 
 Firehose Setup -The firehose stream receives data in avro format and calls lambda function which converts data to json , adds a new field full_name into the data field, as well as a full_name field as a partition key and puts it back into the firehose delivery stream. If I don’t want full_name field to be added as a column field (attribute)  in the actual parquet file , there is no need to add it to the glue table which Firehose will use for source mapping. Any fields not in the glue catalog table, will not show up in the final parquet file. This glue catalog table is separate from the glue schema registry used by the connector. The glue catalog table is used when you want to convert json data to ORC/Parquet format and is applied on the incoming source data in Firehose. Incoming source data in this case is data that is coming back to Firehose after being transformed by the lambda firehose-lambda-dynamic-avro-to-json.
->>Screen shots for Firehose setup
->>IAM Role for Firehose
->>Glue table settings for source mapping that will be called inside Firehose after return from lambda
+![plot](./firehose1.png)
+![plot](./firehose2.png)
+
+
+
+Glue table settings for source mapping that will be called inside Firehose after return from lambda
+![plot](./gluetable.png)
 
 
 The code for the Lambda function is in firehose-lambda-dynamic-avro-to-json folder. I have created a script.zip of the code and its dependencies. The actual deserialization code for converting the data structure is in lambda_function.py. In addition to converting the data from Avro to Json, the lambda function can also add new columns to the data or add partition keys to the data. This lambda function in my case is used for dynamic partitioning of the data and adds new partitions to the data set, so that I can store it in a folder structure as per my analytics needs.
 >>How to test -Select template as firehose and create a sample event with base64 encoded data 
-{
-  "invocationId": "invocationIdExample",
-  "deliveryStreamArn": "arn:aws:kinesis:EXAMPLE",
-  "region": "us-east-1",
-  "records": [
-    {
-      "recordId": "49546986683135544286507457936321625675700192471156785154",
-      "approximateArrivalTimestamp": 1495072949453,
+<code>{
+  "invocationId": "invocationIdExample",<br/>
+  "deliveryStreamArn": "arn:aws:kinesis:EXAMPLE",<br/>
+  "region": "us-east-1",<br/>
+  "records": [<br/>
+    {<br/>
+      "recordId": "49546986683135544286507457936321625675700192471156785154",<br/>
+      "approximateArrivalTimestamp": 1495072949453,<br/>
       "data": "'T2JqAQQWYXZyby5zY2hlbWH6AnsidHlwZSI6InJlY29yZCIsIm5hbWUiOiJDdXN0b21lciIsIm5hbWVzcGFjZSI6IkN1c3RvbWVyLmF2cm8iLCJmaWVsZHMiOlt7Im5hbWUiOiJmaXJzdF9uYW1lIiwidHlwZSI6InN0cmluZyJ9LHsibmFtZSI6Imxhc3RfbmFtZSIsInR5cGUiOiJzdHJpbmcifV0sImNvbm5lY3QubmFtZSI6IkN1c3RvbWVyLmF2cm8uQ3VzdG9tZXIifRRhdnJvLmNvZGVjCG51bGwAxgOHt3Rlr1xYX3GToa8rNgIaBkFkYRBMb3ZlbGFjZcYDh7d0Za9cWF9xk6GvKzY='"
     }
   ]
 }
+</code>
 
-It is easy to get base64 encoded data by having this startement. I got it working by making sure connector connects to firehose and firehose sends data to lamabda and then modified lambda code to get the base 64 dump which then helped me to unit test the lambda.
 
->>print(firehose_record_input['data'])
 
 
 
