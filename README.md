@@ -13,14 +13,10 @@ This repository shows the code for different parts of an ecosystem to send AVRO 
     6-Deploy the custom plugin.\
     7-Deploy the MSK Connector based off the custom plugin
 
-# Screen shots of setup
-
-Setup the VPC Endpoints for glue and firehose. This is how it looks for me.
->> Diagram for VPC endpoints 
+# Brief setup instructions
 
 Setup the MSK Cluster. Make sure to setup the security groups for the MSK Cluster so that it can communicate with the producer and the MSK Connector that will be setup later.
-In my case here is the setup of my configuration file for the MSK Cluster.
->> Diagram for MSK Cluster configuration
+
 
 The Producer is a spring boot project in msk_producer_consumer_avro.
 I have also added a consumer in the same project, so that I can make sure that my Producer  Application is able to connect and send data to MSK and a Consumer Application is able to receive the data from MSK. To be able to test quickly, I pushed the Docker container for msk_producer_consumer_avro to ECR and ran the container on a Cloud9 environment. My Cloud9 environment is in the same vpc and subnet as MSK. Setup the following properties for the Producer to be able to connect to Glue Schema registry.
